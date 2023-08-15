@@ -118,13 +118,22 @@ func setupNetInfo(f string) {
 		log.Fatal("无法获取本地网络信息:", err)
 	}
 	for _, it := range ifs {
+
+		log.Info("Flags:", it.Flags)
+
+		if it.Flags == 0 {
+			continue
+		}
+
 		addr, _ := it.Addrs()
 		for _, a := range addr {
 			if ip, ok := a.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+
 				if ip.IP.To4() != nil {
 					ipNet = ip
 					localHaddr = it.HardwareAddr
 					iface = it.Name
+					log.Info("iface:", iface)
 					goto END
 				}
 			}
@@ -142,6 +151,7 @@ func localHost() {
 }
 
 func listenARP(ctx context.Context) {
+	log.Info("开始监听ARP", iface)
 	handle, err := pcap.OpenLive(iface, 1024, false, 10*time.Second)
 	if err != nil {
 		log.Fatal("pcap打开失败1:", err)
@@ -542,5 +552,10 @@ func main() {
 			}
 		}
 	}
+	time.Sleep(5 * time.Second)
+	log.Info("结束...")
 END:
+	time.Sleep(5 * time.Second)
+	log.Info("goscan end...")
+
 }
